@@ -4,6 +4,11 @@ This frontend was built to work with the Node.js backend project: [smart-tbk-tes
 
 # Smart TBK Technical Test - Flutter
 
+## App Screenshot
+
+![Smart TBK Technical Test - Home](assets/images/app_screenshot-1.png)
+![Smart TBK Technical Test - Api](assets/images/app_screenshot-2.png)
+
 ## About This Project
 
 This is a Flutter app that takes a number, reverses it, and calculates the absolute difference between the original and reversed values. It supports two calculation modes — a built-in local calculation and an API mode that delegates to a Node.js backend.
