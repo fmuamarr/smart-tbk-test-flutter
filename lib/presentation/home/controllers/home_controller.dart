@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import '../../../app/utils/locale_strings.dart';
-import '../../../data/network/api_provider.dart';
+import '../../../app/utils/const/storage_const.dart';
+import '../../../app/utils/locales/locale_strings.dart';
+import '../../../app/utils/service/storage_service.dart';
 import '../../../data/network/config.dart';
+import '../../../data/repository/api_number_repository_impl.dart';
 import '../../../domain/entities/reverse_result.dart';
 import '../../../domain/usecase/calculate_reverse_difference_usecase.dart';
 
@@ -12,16 +13,13 @@ enum CalculationMode { builtIn, api }
 class HomeController extends GetxController {
   final CalculateReverseDifferenceUseCase localUseCase;
   final CalculateReverseDifferenceUseCase apiUseCase;
-  final ApiProvider apiProvider;
+  final ApiNumberRepositoryImpl apiRepository;
 
   HomeController({
     required this.localUseCase,
     required this.apiUseCase,
-    required this.apiProvider,
+    required this.apiRepository,
   });
-
-  static const _storageKey = 'custom_api_host';
-  final _storage = GetStorage();
 
   final textController = TextEditingController();
   final hostController = TextEditingController();
@@ -36,12 +34,13 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final saved = _storage.read<String>(_storageKey);
-    final defaultHost = ApiConfig.baseUrl;
-    final host = (saved != null && saved.isNotEmpty) ? saved : defaultHost;
+    final saved = StorageService.getData(StorageConst.customApiHost) as String?;
+    final host = (saved != null && saved.isNotEmpty)
+        ? saved
+        : ApiConfig.baseUrl;
     currentHost.value = host;
     hostController.text = host;
-    apiProvider.updateBaseUrl(host);
+    apiRepository.apiProvider.updateBaseUrl(host);
   }
 
   CalculateReverseDifferenceUseCase get _activeUseCase =>
@@ -51,8 +50,6 @@ class HomeController extends GetxController {
     return value.replaceAll(RegExp(r'[^0-9]'), '');
   }
 
-  /// Saves the host and updates the Dio baseUrl.
-  /// Returns an error message if the format is invalid, null if saved OK.
   String? saveHost(String input) {
     final trimmed = input.trim();
     if (trimmed.isEmpty) return LocaleStrings.hostEmpty.tr;
@@ -62,15 +59,12 @@ class HomeController extends GetxController {
         uri != null &&
         (uri.scheme == 'http' || uri.scheme == 'https') &&
         uri.host.isNotEmpty;
-    if (!isValid) {
-      return LocaleStrings.hostInvalid.tr;
-    }
+    if (!isValid) return LocaleStrings.hostInvalid.tr;
 
-    _storage.write(_storageKey, trimmed);
+    StorageService.saveData(StorageConst.customApiHost, trimmed);
     currentHost.value = trimmed;
-    apiProvider.updateBaseUrl(trimmed);
+    apiRepository.apiProvider.updateBaseUrl(trimmed);
 
-    // If currently in API mode, re-check health with new host
     if (mode.value == CalculationMode.api) {
       mode.value = CalculationMode.builtIn;
       result.value = null;
@@ -86,16 +80,7 @@ class HomeController extends GetxController {
       isCheckingHealth.value = true;
       errorMessage.value = '';
 
-      bool healthy;
-      try {
-        final response = await apiProvider.call(
-          ApiConfig.healthEndpoint,
-          method: MethodRequest.get,
-        );
-        healthy = response['data']?['status'] == 'ok';
-      } catch (_) {
-        healthy = false;
-      }
+      final healthy = await apiRepository.checkHealth();
 
       isCheckingHealth.value = false;
       isApiHealthy.value = healthy;

@@ -11,14 +11,13 @@ class HomeBinding extends Bindings {
   @override
   void dependencies() {
     final apiProvider = ApiProvider(baseUrl: ApiConfig.baseUrl);
+    final apiRepository = ApiNumberRepositoryImpl(apiProvider);
 
     Get.lazyPut<HomeController>(
       () => HomeController(
         localUseCase: CalculateReverseDifferenceUseCase(NumberRepositoryImpl()),
-        apiUseCase: CalculateReverseDifferenceUseCase(
-          ApiNumberRepositoryImpl(apiProvider),
-        ),
-        apiProvider: apiProvider,
+        apiUseCase: CalculateReverseDifferenceUseCase(apiRepository),
+        apiRepository: apiRepository,
       ),
     );
   }

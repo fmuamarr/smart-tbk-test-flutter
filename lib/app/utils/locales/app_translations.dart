@@ -58,7 +58,7 @@ class AppTranslations extends Translations {
       'hostUpdated': 'Host diperbarui ke @host',
       'apiUnreachable':
           'API tidak dapat dijangkau. Periksa server atau ubah host.',
-      'madeBy': 'SMART Tbk Technical Test oleh Fadillah Muamar',
+      'madeBy': 'SMART Tbk Technical Test by Fadillah Muamar',
     },
   };
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../app/theme/theme.dart';
-import '../../../app/utils/locale_strings.dart';
+import '../../../app/utils/locales/locale_strings.dart';
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
